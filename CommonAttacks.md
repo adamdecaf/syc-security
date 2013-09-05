@@ -1,13 +1,8 @@
 # System Security
 
-## Grading
-
-- Midterm, Final, Project
--  128      128     144   = 400
-
 ## Packet Watch
 - ICMP: Internet Control Message Protocol
-- Used for reporting error conditions and issuing and responding to requests
+- Used for reporting error conditions and issuing and responding to request
 
 ## Common Attacks
 - Win NT would redirect icmp redirect packets to itself.
