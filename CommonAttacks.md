@@ -60,3 +60,10 @@
 ## WinNuke
 - First packet has URG flag set. Then a RST is sent and it would BSOD. 
 
+## TCP Dump
+
+```shell
+  tcpdump -x -s 0 'tcp[13] & 64 == 64' # filter packets with E flag set.
+  tcpdump -x -s 0 'tcp[13] > 63'       # high nibble filter
+```
+
