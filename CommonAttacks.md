@@ -67,3 +67,41 @@
   tcpdump -x -s 0 'tcp[13] > 63'       # high nibble filter
 ```
 
+## Rose Attack
+
+- Send the victim many packets that are only missing small portions
+  of the whole packet. (Slightly fragmented upon reassembly)
+- We can forge the source address and ports because no one will reassemble
+  this packet, ever.
+- Legit traffic still comes in, even during the attack
+- Two attacker systems are connected to each other, where one is a 
+  firewall that passes everything through, except for a really small mtu
+- Firewall System: MTU=1000, will drop one fragment (iptables)
+- Attcker will bombard the victim with packets, fragmented and dropped
+
+
+### Links
+- http://digital.net/~gandalf/rose.c
+- http://www.revsys.com/writings/quicktips/nat.html
+- http://digital.net/~gandalf/Rose_Frag_Attack_Explained.htm
+
+
+```bash
+echo 1 > /proc/sys/net/ipv4/ip_forward
+/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+/sbin/iptables -A FORWARD -i eth0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+/sbin/iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT
+```
+
+```bash
+# Lower MTU of interface
+ifconfig eth1 mtu 1000
+```
+
+
+### How to
+
+- Check the fragmented bit and which packet to drop via iptables
+- http://www.stearns.org/doc/iptables-u32.v0.1.7.html
+- http://en.wikipedia.org/wiki/IPv4_header#Flags
+
