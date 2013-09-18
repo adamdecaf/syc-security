@@ -1,0 +1,74 @@
+BOX_URL = "http://files.vagrantup.com/precise32.box"
+BOX_NAME = "percise32"
+
+DB_IP = "192.168.99.10"
+
+Vagrant.configure("2") do |config|
+  config.vm.box_url = BOX_URL
+  config.vm.box = BOX_NAME
+
+  config.vm.define "dbs" do |dbs|
+    dbs.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "../cookbooks"
+      chef.add_recipe "recipe[apt]"
+      chef.add_recipe "recipe[git]"
+      chef.add_recipe "recipe[vim]"
+      chef.add_recipe "recipe[java]"
+      chef.add_recipe "recipe[ruby]"
+      chef.add_recipe "recipe[build-essential]"
+      chef.add_recipe "recipe[openssl]"
+      chef.add_recipe "recipe[database::mysql]"
+      chef.add_recipe "recipe[database::postgresql]"
+      chef.add_recipe "recipe[mysql::server]"
+      chef.add_recipe "recipe[mongodb::10gen_repo]"
+      chef.add_recipe "recipe[mongodb::default]"
+      chef.add_recipe "recipe[apt]"
+      #chef.add_recipe "recipe[postgresql::apt_pgdg_postgresql]"
+      #chef.add_recipe "recipe[postgresql::client]"
+      #chef.add_recipe "recipe[postgresql::server]"
+      #chef.add_recipe "recipe[postgresql::config_initdb]"
+      chef.add_recipe "recipe[redis::server_package]"
+      chef.json = DBS_JSON
+    end
+
+    dbs.vm.provider "virtualbox" do |vb|
+      vb.hostname = "dbs.vagrant"
+      vb.customize ["modifyvm", :id, "--memory", "512"]
+      vb.network "private_network", ip: DB_IP
+    end
+  end
+end
+
+POSTGRES_VERSION = "9.2"
+
+DBS_JSON = {
+  :mysql => {
+    :allow_remote_root => true,
+    :remove_anonymous_users => true,
+    :server_root_password => "password",
+    :server_repl_password => "password",
+    :server_debian_password => "password"
+  },
+  :postgresql => {
+    :version => POSTGRES_VERSION,
+    :dir => "/var/lib/postgresql/#{POSTGRES_VERSION}/main",
+    :enable_pgdg_apt => true,
+    :password => {
+      :postgres => "password"
+    },
+    :client => {
+      :packages => ["postgresql-client-#{POSTGRES_VERSION}"]
+    },
+    :contrib => {
+      :packages => ["postgresql-contrib-#{POSTGRES_VERSION}"]
+    },
+    :config => {
+      :log_rotation_age => "1d",
+      :log_rotation_size  => "10MB",
+      :log_filename => "postgresql-%Y-%m-%d_%H%M%S.log"
+    },
+    :server => {
+      :packages => ["postgresql-#{POSTGRES_VERSION}"]
+    }
+  }
+}
