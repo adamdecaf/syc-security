@@ -1,5 +1,6 @@
-BOX_URL = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
-BOX_NAME = "dummy"
+BOX_URL = "http://files.vagrantup.com/precise32.box"
+BOX_NAME = "percise32"
+
 BOX_TARGET_IP = "192.168.99.10"
 BOX_IDLE_HOST_IP = "192.168.99.11"
 
@@ -8,29 +9,30 @@ Vagrant.configure("2") do |config|
   config.vm.box = BOX_NAME
 
   config.vm.define "target" do |target|
-    # Install apache and start it.
-    target.vm.provision :chef_solo do |target|
+    target.vm.provision :chef_solo do |chef|
       chef.cookbooks_path = "../cookbooks"
-      chef.add_recipe "recipe[apt]"
-    end
-
-    target.vm.host_name = "target.vagrant"
-    target.vm.customize ["modifyvm", :id, "--memory", "256"]
-    target.vm.network :hostonly, BOX_TARGET_IP
-  end
-
-  config.vm.define "idle-host" do |idle|
-    # Install apache and start it.
-    idle.vm.provision :chef_solo do |chef|
-      chef.cookbooks_path = "../cookbooks"
-
       chef.add_recipe "recipe[apt]"
       chef.add_recipe "recipe[apache2]"
     end
 
-    idle.vm.host_name = "target.vagrant"
-    idle.vm.customize ["modifyvm", :id, "--memory", "256"]
-    idle.vm.network :hostonly, BOX_TARGET_IP
+    target.vm.provider "virtualbox" do |vb|
+      vb.hostname = "target.vagrant"
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+      vb.network "private_network", ip: BOX_TARGET_IP
+    end
+  end
+
+  config.vm.define "idle-host" do |idle|
+    idle.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "../cookbooks"
+      chef.add_recipe "recipe[apt]"
+    end
+
+    idle.vm.provider "virtualbox" do |vb|
+      vb.hostname = "idle-host.vagrant"
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+      vb.network "private_network", ip: BOX_IDLE_HOST_IP
+    end
   end
 end
 
