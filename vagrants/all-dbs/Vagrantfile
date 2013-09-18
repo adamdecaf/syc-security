@@ -39,22 +39,24 @@ Vagrant.configure("2") do |config|
   end
 end
 
+MYSQL_PASSWORD = "password"
 POSTGRES_VERSION = "9.2"
+POSTGRES_PASSWORD = "password"
 
 DBS_JSON = {
   :mysql => {
     :allow_remote_root => true,
     :remove_anonymous_users => true,
-    :server_root_password => "password",
-    :server_repl_password => "password",
-    :server_debian_password => "password"
+    :server_root_password => MYSQL_PASSWORD,
+    :server_repl_password => MYSQL_PASSWORD,
+    :server_debian_password => MYSQL_PASSWORD
   },
   :postgresql => {
     :version => POSTGRES_VERSION,
     :dir => "/var/lib/postgresql/#{POSTGRES_VERSION}/main",
     :enable_pgdg_apt => true,
     :password => {
-      :postgres => "password"
+      :postgres => POSTGRES_PASSWORD
     },
     :client => {
       :packages => ["postgresql-client-#{POSTGRES_VERSION}"]
