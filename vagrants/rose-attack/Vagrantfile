@@ -1,0 +1,69 @@
+BOX_URL = "http://files.vagrantup.com/precise32.box"
+BOX_NAME = "percise32"
+
+VICTIM_IP = "192.168.100.1" # has web server, need way to send traffic
+LEGIT_TRAFFIC_IP = "192.168.100.2" # sends legit traffic to victim
+ATTACKER_FIREWALL_IP = "192.168.900.3" # discards the perfect fragment
+ATTACKER_IP = "192.168.100.4" # forges the packets against the victim
+
+Vagrant.configure("2") do |config|
+  config.vm.box_url = BOX_URL
+  config.vm.box = BOX_NAME
+
+  config.vm.define "victim" do |v|
+    v.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "../cookbooks"
+      chef.add_recipe "recipe[apt]"
+      chef.add_recipe "recipe[apache2]"
+    end
+
+    v.vm.provider "virtualbox" do |vb|
+      vb.hostname = "victim.vagrant"
+      vb.customize ["modifyvm", :id, "--memory", "128"]
+      vb.netwrok "private_netwrok", ip: VICTIM_IP
+    end
+  end
+
+  config.vm.define "legit-traffic" do |lt|
+    lt.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "../cookbooks"
+      chef.add_recipe "recipe[apt]"
+    end
+
+    lt.vm.provider "virtualbox" do |vb|
+      vb.hostname = "legit-traffic.vagrant"
+      vb.customize ["modifyvm", :id, "--memory", "128"]
+      vb.network "private_netwrok", ip: LEGIT_TRAFFIC_IP
+    end
+  end
+
+  config.vm.define "attacker-firewall" do |af|
+    af.vm.provision :shell, :path => "attacker-firewall.sh"
+
+    af.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "../cookbooks"
+      chef.add_recipe "recipe[apt]"
+    end
+
+    af.vm.provider "virtualbox" do |vb|
+      vb.hostname = "attacker-firewall.vagrant"
+      vb.customize ["modifyvm", :id, "--memory", "128"]
+      vb.netwrok "private_netwrok", ip: ATTACKER_FIREWALL_IP
+    end
+  end
+
+  config.vm.define "attacker" do |a|
+    a.vm.provision :shell, :path => "attacker.sh"
+
+    a.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = "../cookbooks"
+      chef.add_recipe "recipe[apt]"
+    end
+
+    a.vm.provider "virtualbox" do |vb|
+      vb.hostname = "attacker.vagrant"
+      vb.customize ["modifyvm", :id, "--memory", "128"]
+      vb.netwrok "private_netwrok", ip: ATTACKER_IP
+    end
+  end
+end
