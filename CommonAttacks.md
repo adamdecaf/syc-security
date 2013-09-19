@@ -17,7 +17,7 @@
    - phrack.com issue 49 article 6
 
 ## Homework
-- Prepate similarity and difference lists between TFN and trinoo. 
+- Prepate similarity and difference lists between TFN and trinoo.
    - Bring to class, how are they similar/different?
 - Lookup Loki2 and the project iodine, similaries and differences
    - for thursday
@@ -32,7 +32,7 @@
 
 ## Frag and Jolt2
 - Certain win98, NT, and 2000 boxes will freak out when they dont
-  get the initial 0 offset fragment. 
+  get the initial 0 offset fragment.
 - Send it packets with high fragment parts
 - Jolt2 - send it fragments close from the end (buf overflow)
 
@@ -45,20 +45,20 @@
   causing harm
 
 ## Backscatter
-- RFC 1122 dictates that icmp error messages can not generate another 
-  icmp error message. 
+- RFC 1122 dictates that icmp error messages can not generate another
+  icmp error message.
 - Forged source address as your address.
 
 ## TCP Anomalous Flag Combinations
 - SFP (SYN, FIN, PUSH) on Win98 gladly responds with SA (Syn ACK)
-- But SFP makes no sense 
+- But SFP makes no sense
 
-## Echo-Chargen Loop 
+## Echo-Chargen Loop
 - Echo port - 7, chargen - 19
 - Packet is forged to bounce between victims echo and chargen ports.
 
 ## WinNuke
-- First packet has URG flag set. Then a RST is sent and it would BSOD. 
+- First packet has URG flag set. Then a RST is sent and it would BSOD.
 
 ## TCP Dump
 
@@ -74,7 +74,7 @@
 - We can forge the source address and ports because no one will reassemble
   this packet, ever.
 - Legit traffic still comes in, even during the attack
-- Two attacker systems are connected to each other, where one is a 
+- Two attacker systems are connected to each other, where one is a
   firewall that passes everything through, except for a really small mtu
 - Firewall System: MTU=1000, will drop one fragment (iptables)
 - Attcker will bombard the victim with packets, fragmented and dropped
@@ -96,6 +96,11 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 ```bash
 # Lower MTU of interface
 ifconfig eth1 mtu 1000
+```
+
+```bash
+# Set an interface ip
+ifconfig wlan0 10.0.0.1 netmask 255.0.0.0
 ```
 
 
