@@ -1,0 +1,93 @@
+BOX_URL = "http://files.vagrantup.com/precise32.box"
+BOX_NAME = "percise32"
+COOKBOOKS_PATH = "../cookbooks"
+
+FUNNEL_IP  = "192.168.99.30"
+# SNIFFER_IP = "192.168.99.31"
+# FTP_IP     = "192.168.99.32"
+WEB_IP     = "192.168.99.33"
+DBS_IP     = "192.168.99.34"
+
+FUNNEL_HOST  = "funnel.ids.vagrant"
+# SNIFFER_HOST = "sniff.ids.vagrant"
+# FTP_HOST     = "ftp.ids.vagrant"
+WEB_HOST     = "web.ids.vagrant"
+DBS_HOST     = "dbs.ids.vagrant"
+
+Vagrant.configure("2") do |config|
+  config.vm.box_url = BOX_URL
+  config.vm.box = BOX_NAME
+
+  config.vm.define "funnel" do |funnel|
+    funnel.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = COOKBOOKS_PATH
+      chef.add_recipe "recipe[apt]"
+      chef.add_recipe "recipe[ohai]"
+      chef.add_recipe "recipe[curl]"
+      chef.add_recipe "recipe[common-packages]"
+      chef.add_recipe "recipe[nginx]"
+      chef.json = ALL_VMS_JSON
+    end
+    funnel.vm.network :forwarded_port, host: 8080, guest: 80
+    funnel.vm.network "private_network", ip: FUNNEL_IP
+    funnel.vm.provider "virtualbox" do |vb|
+      vb.hostname = FUNNEL_HOST
+      vb.customize ["modifyvm", :id, "--memory", "128"]
+    end
+  end
+
+  config.vm.define "web" do |web|
+    web.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = COOKBOOKS_PATH
+      chef.add_recipe "recipe[apt]"
+      chef.add_recipe "recipe[php]"
+      chef.add_recipe "recipe[apache2]"
+      chef.add_recipe "recipe[wordpress]"
+      chef.json = ALL_VMS_JSON
+    end
+    web.vm.network :forwarded_port, host: 8081, guest: 80
+    web.vm.network "private_network", ip: WEB_IP
+    web.vm.provider "virtualbox" do |vb|
+      vb.hostname = WEB_HOST
+      vb.customize ["modifyvm", :id, "--memory", "128"]
+    end
+  end
+
+  config.vm.define "dbs" do |dbs|
+    dbs.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = COOKBOOKS_PATH
+      chef.add_recipe "recipe[apt]"
+      chef.add_recipe "recipe[build-essential]"
+      chef.add_recipe "recipe[openssl]"
+      chef.add_recipe "recipe[database::mysql]"
+      chef.add_recipe "recipe[mysql::server]"
+      chef.json = ALL_VMS_JSON
+    end
+    dbs.vm.network "private_network", ip: DBS_IP
+    dbs.vm.provider "virtualbox" do |vb|
+      vb.hostname DBS_HOST
+      vb.customize ["modifyvm", :id, "--memory", "128"]
+    end
+  end
+end
+
+MYSQL_PASSWORD = "password"
+
+ALL_VMS_JSON = {
+  :mysql => {
+    :allow_remote_root => true,
+    :remove_anonymous_users => true,
+    :server_root_password => MYSQL_PASSWORD,
+    :server_repl_password => MYSQL_PASSWORD,
+    :server_debian_password => MYSQL_PASSWORD
+  },
+  :wordpress => {
+    :version => "3.6.1",
+    :db => {
+      :database => "sample-wp-db",
+      :user => "wp-user",
+      :password => "wp-pass"
+    }
+  }
+}
+
